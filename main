@@ -8,9 +8,13 @@ const char *password = "11279112";
 
 #define DHTPIN 23
 #define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
 
+DHT dht(DHTPIN, DHTTYPE);
 WebServer server(80);
+
+// -------- FUNCTION DECLARATIONS (Good Practice) --------
+void handleRoot();
+void handleData();
 
 // ----------- SENSOR API -------------
 void handleData() {
@@ -50,7 +54,7 @@ body {
   margin: 15px auto;
   padding: 20px;
   border-radius: 20px;
-  width: 80%%;
+  width: 80%;
   max-width: 400px;
 }
 
@@ -80,8 +84,6 @@ body {
   <div class='value' id='hum'>--</div>
 </div>
 
-
-
 <div class='card'>
   <div>Time</div>
   <div class='small' id='time'></div>
@@ -98,8 +100,6 @@ setInterval(() => {
       document.getElementById('hum').innerHTML = data.hum + " %";
     });
 }, 2000);
-
-
 
 // -------- TIME --------
 setInterval(() => {
