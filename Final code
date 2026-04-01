@@ -1,0 +1,97 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+
+// -------- CONFIG --------
+#define DHTPIN 23       
+#define DHTTYPE DHT11   
+
+#define LED_LOW 5       
+#define LED_HIGH 18     
+
+#define BUZZER 2        // NEW: Buzzer on D2
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+DHT dht(DHTPIN, DHTTYPE);
+
+// -------- SETUP --------
+void setup() {
+  Serial.begin(115200);
+
+  dht.begin();
+
+  Wire.begin(21, 22);
+
+  lcd.init();
+  lcd.backlight();
+
+  pinMode(LED_LOW, OUTPUT);
+  pinMode(LED_HIGH, OUTPUT);
+  pinMode(BUZZER, OUTPUT);   // NEW
+
+  // Welcome message
+  lcd.setCursor(0, 0);
+  lcd.print("Digital Thermo");
+  lcd.setCursor(0, 1);
+  lcd.print("Starting...");
+  delay(2000);
+  lcd.clear();
+}
+
+// -------- LOOP --------
+void loop() {
+  float temp = dht.readTemperature();
+  float hum  = dht.readHumidity();
+
+  // -------- ERROR CHECK --------
+  if (isnan(temp) || isnan(hum)) {
+    lcd.setCursor(0, 0);
+    lcd.print("Sensor Error!   ");
+    lcd.setCursor(0, 1);
+    lcd.print("Check Wiring    ");
+
+    Serial.println("DHT11 read failed!");
+    delay(2000);
+    return;
+  }
+
+  // -------- LED + BUZZER CONTROL --------
+  if (temp < 35) {
+    digitalWrite(LED_LOW, HIGH);
+    digitalWrite(LED_HIGH, LOW);
+    digitalWrite(BUZZER, LOW);   // OFF
+  } 
+  else {
+    digitalWrite(LED_LOW, LOW);
+
+    // Blink LED
+    digitalWrite(LED_HIGH, HIGH);
+    digitalWrite(BUZZER, HIGH);  // ON
+    delay(300);
+
+    digitalWrite(LED_HIGH, LOW);
+    digitalWrite(BUZZER, LOW);   // OFF
+    delay(50);
+  }
+
+  // -------- DISPLAY --------
+  lcd.setCursor(0, 0);
+  lcd.print("T:");
+  lcd.print(temp, 1);
+  lcd.print((char)223);
+  lcd.print("C   ");
+
+  lcd.setCursor(0, 1);
+  lcd.print("H:");
+  lcd.print(hum, 0);
+  lcd.print("%        ");
+
+  // -------- SERIAL --------
+  Serial.print("Temp: ");
+  Serial.print(temp);
+  Serial.print(" C  |  Hum: ");
+  Serial.print(hum);
+  Serial.println(" %");
+
+  delay(2000);
+}
