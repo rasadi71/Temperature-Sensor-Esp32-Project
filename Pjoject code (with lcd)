@@ -1,0 +1,70 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+
+// -------- CONFIG --------
+#define DHTPIN 23       // DHT11 connected to GPIO 23
+#define DHTTYPE DHT11   // Using DHT11
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Change to 0x3F if needed
+DHT dht(DHTPIN, DHTTYPE);
+
+// -------- SETUP --------
+void setup() {
+  Serial.begin(115200);
+
+  dht.begin();
+
+  // Initialize I2C (ESP32 default pins)
+  Wire.begin(21, 22); // SDA, SCL
+
+  lcd.init();
+  lcd.backlight();
+
+  // Welcome message
+  lcd.setCursor(0, 0);
+  lcd.print("Digital Thermo");
+  lcd.setCursor(0, 1);
+  lcd.print("Starting...");
+  delay(2000);
+  lcd.clear();
+}
+
+// -------- LOOP --------
+void loop() {
+  float temp = dht.readTemperature();
+  float hum  = dht.readHumidity();
+
+  // -------- ERROR CHECK --------
+  if (isnan(temp) || isnan(hum)) {
+    lcd.setCursor(0, 0);
+    lcd.print("Sensor Error!   ");
+    lcd.setCursor(0, 1);
+    lcd.print("Check Wiring    ");
+
+    Serial.println("DHT11 read failed!");
+    delay(2000);
+    return;
+  }
+
+  // -------- DISPLAY (NO FLICKER) --------
+  lcd.setCursor(0, 0);
+  lcd.print("T:");
+  lcd.print(temp, 1);
+  lcd.print((char)223); // degree symbol
+  lcd.print("C   ");     // spaces to clear leftovers
+
+  lcd.setCursor(0, 1);
+  lcd.print("H:");
+  lcd.print(hum, 0);
+  lcd.print("%        ");
+
+  // -------- SERIAL OUTPUT --------
+  Serial.print("Temp: ");
+  Serial.print(temp);
+  Serial.print(" C  |  Hum: ");
+  Serial.print(hum);
+  Serial.println(" %");
+
+  delay(2000); // DHT11 needs ~2 sec delay
+}
