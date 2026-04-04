@@ -76,7 +76,7 @@ void loop() {
 
   // -------- DISPLAY --------
   lcd.setCursor(0, 0);
-  lcd.print("T:");
+  lcd.print("Temp:");
   lcd.print(temp, 1);
   lcd.print((char)223);
   lcd.print("C   ");
